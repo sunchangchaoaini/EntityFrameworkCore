@@ -34,15 +34,32 @@ namespace Microsoft.EntityFrameworkCore.Relational.Query.Pipeline
         protected override Expression VisitShapedQueryExpression(ShapedQueryExpression shapedQueryExpression)
         {
             var shaperLambda = InjectEntityMaterializer(shapedQueryExpression.ShaperExpression);
+
             var selectExpression = (SelectExpression)shapedQueryExpression.QueryExpression;
+
+            var hasNextParameter = Expression.Parameter(typeof(bool).MakeByRefType(), "hasNext");
 
             var newBody = new RelationalProjectionBindingRemovingExpressionVisitor(selectExpression)
                 .Visit(shaperLambda.Body);
 
-            shaperLambda = Expression.Lambda(
-                newBody,
-                QueryCompilationContext2.QueryContextParameter,
-                RelationalProjectionBindingRemovingExpressionVisitor.DataReaderParameter);
+            newBody = ReplacingExpressionVisitor.Replace(
+                MoveNextMarker,
+                Expression.Assign(hasNextParameter, Expression.Call(
+                    RelationalProjectionBindingRemovingExpressionVisitor.DataReaderParameter, _dbDataReaderReadMethodInfo)),
+                newBody);
+
+            shaperLambda = (LambdaExpression)_createLambdaMethodInfo.MakeGenericMethod(newBody.Type)
+                .Invoke(
+                    null,
+                    new object[]
+                    {
+                        newBody,
+                        new [] {
+                            QueryCompilationContext2.QueryContextParameter,
+                            RelationalProjectionBindingRemovingExpressionVisitor.DataReaderParameter,
+                            hasNextParameter
+                        }
+                    });
 
             return Expression.New(
                 typeof(QueryingEnumerable<>).MakeGenericType(shaperLambda.ReturnType).GetConstructors()[0],
@@ -52,17 +69,34 @@ namespace Microsoft.EntityFrameworkCore.Relational.Query.Pipeline
                 Expression.Constant(shaperLambda.Compile()));
         }
 
+        private static readonly MethodInfo _dbDataReaderReadMethodInfo
+            = typeof(DbDataReader).GetTypeInfo()
+                .GetRuntimeMethod(nameof(DbDataReader.Read), new Type[] { });
+
+        private delegate T Shaper<T>(QueryContext queryContext, DbDataReader dataReader, out bool hasNext);
+
+        private static readonly MethodInfo _createLambdaMethodInfo
+            = typeof(RelationalShapedQueryCompilingExpressionVisitor).GetTypeInfo()
+                .GetDeclaredMethod(nameof(CreateLambda));
+
+        private static LambdaExpression CreateLambda<T>(Expression body, ParameterExpression[] parameters)
+        {
+            return Expression.Lambda<Shaper<T>>(
+                body,
+                parameters);
+        }
+
         private class QueryingEnumerable<T> : IEnumerable<T>
         {
             private readonly RelationalQueryContext _relationalQueryContext;
             private readonly SelectExpression _selectExpression;
-            private readonly Func<QueryContext, DbDataReader, T> _shaper;
+            private readonly Shaper<T> _shaper;
             private readonly QuerySqlGenerator _querySqlGenerator;
 
             public QueryingEnumerable(RelationalQueryContext relationalQueryContext,
                 QuerySqlGenerator querySqlGenerator,
                 SelectExpression selectExpression,
-                Func<QueryContext, DbDataReader, T> shaper)
+                Shaper<T> shaper)
             {
                 _relationalQueryContext = relationalQueryContext;
                 _querySqlGenerator = querySqlGenerator;
@@ -76,9 +110,10 @@ namespace Microsoft.EntityFrameworkCore.Relational.Query.Pipeline
             private sealed class Enumerator : IEnumerator<T>
             {
                 private RelationalDataReader _dataReader;
+                private bool _hasNext;
                 private readonly RelationalQueryContext _relationalQueryContext;
                 private readonly SelectExpression _selectExpression;
-                private readonly Func<QueryContext, DbDataReader, T> _shaper;
+                private readonly Shaper<T> _shaper;
                 private readonly QuerySqlGenerator _querySqlGenerator;
 
                 public Enumerator(QueryingEnumerable<T> queryingEnumerable)
@@ -118,6 +153,8 @@ namespace Microsoft.EntityFrameworkCore.Relational.Query.Pipeline
                                 = relationalCommand.ExecuteReader(
                                     _relationalQueryContext.Connection,
                                     _relationalQueryContext.ParameterValues);
+
+                            _hasNext = _dataReader.Read();
                         }
                         catch
                         {
@@ -129,11 +166,11 @@ namespace Microsoft.EntityFrameworkCore.Relational.Query.Pipeline
                         }
                     }
 
-                    var hasNext = _dataReader.Read();
+                    var hasNext = _hasNext;
 
                     Current
                         = hasNext
-                            ? _shaper(_relationalQueryContext, _dataReader.DbDataReader)
+                            ? _shaper(_relationalQueryContext, _dataReader.DbDataReader, out _hasNext)
                             : default;
 
                     return hasNext;

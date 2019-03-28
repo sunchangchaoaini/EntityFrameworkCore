@@ -26,6 +26,8 @@ namespace Microsoft.EntityFrameworkCore.Query.Pipeline
         private readonly IEntityMaterializerSource _entityMaterializerSource;
         private readonly bool _trackQueryResults;
 
+        protected static Expression MoveNextMarker = new MoveNextExpression();
+
         public ShapedQueryCompilingExpressionVisitor(IEntityMaterializerSource entityMaterializerSource, bool trackQueryResults)
         {
             _entityMaterializerSource = entityMaterializerSource;
@@ -58,6 +60,16 @@ namespace Microsoft.EntityFrameworkCore.Query.Pipeline
             }
 
             return base.VisitExtension(extensionExpression);
+        }
+
+        protected class MoveNextExpression : Expression
+        {
+            protected override Expression VisitChildren(ExpressionVisitor visitor)
+            {
+                return this;
+            }
+
+            public override ExpressionType NodeType => ExpressionType.Extension;
         }
 
         protected abstract Expression VisitShapedQueryExpression(ShapedQueryExpression shapedQueryExpression);
@@ -103,13 +115,11 @@ namespace Microsoft.EntityFrameworkCore.Query.Pipeline
             public LambdaExpression Inject(LambdaExpression lambdaExpression)
             {
                 var modifiedBody = Visit(lambdaExpression.Body);
-
-                if (lambdaExpression.Body == modifiedBody)
-                {
-                    return lambdaExpression;
-                }
-
-                _expressions.Add(modifiedBody);
+                var resultVariable = Expression.Variable(lambdaExpression.ReturnType, "result");
+                _variables.Add(resultVariable);
+                _expressions.Add(Expression.Assign(resultVariable, modifiedBody));
+                _expressions.Add(MoveNextMarker);
+                _expressions.Add(resultVariable);
 
                 return Expression.Lambda(Expression.Block(_variables, _expressions), lambdaExpression.Parameters);
             }
@@ -128,12 +138,12 @@ namespace Microsoft.EntityFrameworkCore.Query.Pipeline
                         throw new InvalidOperationException();
                     }
 
-                    var result = Expression.Parameter(entityType.ClrType, "result" + _currentEntityIndex);
+                    var result = Expression.Variable(entityType.ClrType, "result" + _currentEntityIndex);
                     _variables.Add(result);
 
                     if (_trackQueryResults)
                     {
-                        var entryVarible = Expression.Parameter(typeof(InternalEntityEntry), "entry" + _currentEntityIndex);
+                        var entryVarible = Expression.Variable(typeof(InternalEntityEntry), "entry" + _currentEntityIndex);
                         _variables.Add(entryVarible);
                         _expressions.Add(
                             Expression.Assign(
