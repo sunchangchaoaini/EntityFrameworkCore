@@ -86,6 +86,16 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                     : nullConditionalExpression;
             }
 
+            if (extensionExpression is IncludeExpression includeExpression)
+            {
+                var newEntityExpression = Visit(includeExpression.EntityExpression);
+                var newNavigationExpression = Visit(includeExpression.NavigationExpression);
+
+                return newEntityExpression != includeExpression.EntityExpression || newNavigationExpression != includeExpression.NavigationExpression
+                    ? new IncludeExpression(newEntityExpression, newNavigationExpression, includeExpression.Navigation)
+                    : includeExpression;
+            }
+
             throw new System.InvalidOperationException("Unhandled operator: " + extensionExpression);
         }
     }

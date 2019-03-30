@@ -4121,6 +4121,137 @@ INNER JOIN (
 ORDER BY [t0].[Id]");
         }
 
+        public override void Include1()
+        {
+            base.Include1();
+
+            AssertSql(
+                @"SELECT [l1].[Id], [l1].[Date], [l1].[Name], [l1].[OneToMany_Optional_Self_Inverse1Id], [l1].[OneToMany_Required_Self_Inverse1Id], [l1].[OneToOne_Optional_Self1Id], [l1.OneToOne_Optional_FK1].[Id], [l1.OneToOne_Optional_FK1].[Date], [l1.OneToOne_Optional_FK1].[Level1_Optional_Id], [l1.OneToOne_Optional_FK1].[Level1_Required_Id], [l1.OneToOne_Optional_FK1].[Name], [l1.OneToOne_Optional_FK1].[OneToMany_Optional_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToMany_Optional_Self_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToMany_Required_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToMany_Required_Self_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToOne_Optional_PK_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToOne_Optional_Self2Id]
+FROM [LevelOne] AS [l1]
+LEFT JOIN [LevelTwo] AS [l1.OneToOne_Optional_FK1] ON [l1].[Id] = [l1.OneToOne_Optional_FK1].[Level1_Optional_Id]");
+        }
+
+        public override void Include2()
+        {
+            base.Include2();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include3()
+        {
+            base.Include3();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include4()
+        {
+            base.Include4();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include5()
+        {
+            base.Include5();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include6()
+        {
+            base.Include6();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include7()
+        {
+            base.Include7();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include8()
+        {
+            base.Include8();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include9()
+        {
+            base.Include9();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void Include10()
+        {
+            base.Include10();
+
+            AssertSql(
+                @"SELECT [l1].[Id], [l1].[Date], [l1].[Name], [l1].[OneToMany_Optional_Self_Inverse1Id], [l1].[OneToMany_Required_Self_Inverse1Id], [l1].[OneToOne_Optional_Self1Id], [l1.OneToOne_Optional_FK1].[Id], [l1.OneToOne_Optional_FK1].[Date], [l1.OneToOne_Optional_FK1].[Level1_Optional_Id], [l1.OneToOne_Optional_FK1].[Level1_Required_Id], [l1.OneToOne_Optional_FK1].[Name], [l1.OneToOne_Optional_FK1].[OneToMany_Optional_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToMany_Optional_Self_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToMany_Required_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToMany_Required_Self_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToOne_Optional_PK_Inverse2Id], [l1.OneToOne_Optional_FK1].[OneToOne_Optional_Self2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[Level2_Optional_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[Level2_Required_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[Name], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[OneToMany_Optional_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[OneToMany_Optional_Self_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[OneToMany_Required_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[OneToMany_Required_Self_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[OneToOne_Optional_PK_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[OneToOne_Optional_Self3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[Level2_Optional_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[Level2_Required_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[Name], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToMany_Optional_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToMany_Optional_Self_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToMany_Required_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToMany_Required_Self_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToOne_Optional_PK_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToOne_Optional_Self3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Date], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Level1_Optional_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Level1_Required_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Name], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToMany_Optional_Inverse2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToMany_Optional_Self_Inverse2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToMany_Required_Inverse2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToMany_Required_Self_Inverse2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToOne_Optional_PK_Inverse2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToOne_Optional_Self2Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Level2_Optional_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Level2_Required_Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Name], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[OneToMany_Optional_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[OneToMany_Optional_Self_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[OneToMany_Required_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[OneToMany_Required_Self_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[OneToOne_Optional_PK_Inverse3Id], [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[OneToOne_Optional_Self3Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[Level3_Optional_Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[Level3_Required_Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[Name], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[OneToMany_Optional_Inverse4Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[OneToMany_Optional_Self_Inverse4Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[OneToMany_Required_Inverse4Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[OneToMany_Required_Self_Inverse4Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[OneToOne_Optional_PK_Inverse4Id], [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[OneToOne_Optional_Self4Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[Level3_Optional_Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[Level3_Required_Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[Name], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToMany_Optional_Inverse4Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToMany_Optional_Self_Inverse4Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToMany_Required_Inverse4Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToMany_Required_Self_Inverse4Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToOne_Optional_PK_Inverse4Id], [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToOne_Optional_Self4Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[Level2_Optional_Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[Level2_Required_Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[Name], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToMany_Optional_Inverse3Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToMany_Optional_Self_Inverse3Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToMany_Required_Inverse3Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToMany_Required_Self_Inverse3Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToOne_Optional_PK_Inverse3Id], [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToOne_Optional_Self3Id]
+FROM [LevelOne] AS [l1]
+LEFT JOIN [LevelTwo] AS [l1.OneToOne_Optional_FK1] ON [l1].[Id] = [l1.OneToOne_Optional_FK1].[Level1_Optional_Id]
+LEFT JOIN [LevelThree] AS [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2] ON [l1.OneToOne_Optional_FK1].[Id] = [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2].[Level2_Optional_Id]
+LEFT JOIN [LevelThree] AS [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2] ON [l1.OneToOne_Optional_FK1].[Id] = [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2].[OneToOne_Optional_PK_Inverse3Id]
+LEFT JOIN [LevelTwo] AS [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1] ON [l1].[Id] = [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[OneToOne_Optional_PK_Inverse2Id]
+LEFT JOIN [LevelThree] AS [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2] ON [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Id] = [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Level2_Optional_Id]
+LEFT JOIN [LevelFour] AS [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3] ON [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Id] = [OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3].[Level3_Optional_Id]
+LEFT JOIN [LevelFour] AS [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3] ON [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2].[Id] = [OneToOne_Optional_PK2.OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3].[OneToOne_Optional_PK_Inverse4Id]
+LEFT JOIN [LevelThree] AS [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2] ON [l1.OneToOne_Optional_FK1.OneToOne_Optional_FK2.OneToOne_Optional_PK2.OneToOne_Optional_PK1].[Id] = [OneToOne_Optional_PK1.OneToOne_Optional_FK2.OneToOne_Optional_FK3.OneToOne_Optional_PK3.OneToOne_Optional_PK2].[OneToOne_Optional_PK_Inverse3Id]");
+        }
+
+        public override void IncludeCollection1()
+        {
+            base.IncludeCollection1();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void IncludeCollection2()
+        {
+            base.IncludeCollection2();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void IncludeCollection3()
+        {
+            base.IncludeCollection3();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void IncludeCollection4()
+        {
+            base.IncludeCollection4();
+
+            AssertSql(
+                @"");
+        }
+
+        public override void IncludeCollection5()
+        {
+            base.IncludeCollection5();
+
+            AssertSql(
+                @"");
+        }
+
         private void AssertSql(params string[] expected)
         {
             Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

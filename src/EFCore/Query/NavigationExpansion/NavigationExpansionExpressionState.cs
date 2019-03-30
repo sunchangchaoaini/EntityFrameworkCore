@@ -17,6 +17,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
                   pendingSelector: null,
                   applyPendingSelector: false,
                   pendingOrderings: new List<(MethodInfo method, LambdaExpression keySelector)>(),
+                  pendingIncludeChain: null,
                   pendingCardinalityReducingOperator: null,
                   customRootMappings: new List<List<string>>(),
                   materializeCollectionNavigation: null/*, new List<NestedExpansionMapping>()*/)
@@ -29,6 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
             LambdaExpression pendingSelector,
             bool applyPendingSelector,
             List<(MethodInfo method, LambdaExpression keySelector)> pendingOrderings,
+            NavigationBindingExpression pendingIncludeChain,
             MethodInfo pendingCardinalityReducingOperator,
             List<List<string>> customRootMappings,
             INavigation materializeCollectionNavigation
@@ -40,6 +42,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
             PendingSelector = pendingSelector;
             ApplyPendingSelector = applyPendingSelector;
             PendingOrderings = pendingOrderings;
+            PendingIncludeChain = pendingIncludeChain;
             PendingCardinalityReducingOperator = pendingCardinalityReducingOperator;
             CustomRootMappings = customRootMappings;
             //NestedExpansionMappings = nestedExpansionMappings;
@@ -50,6 +53,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
         public List<SourceMapping> SourceMappings { get; set; }
         public LambdaExpression PendingSelector { get; set; }
         public List<(MethodInfo method, LambdaExpression keySelector)> PendingOrderings { get; set; }
+        public NavigationBindingExpression PendingIncludeChain { get; set; }
         public MethodInfo PendingCardinalityReducingOperator { get; set; }
         public bool ApplyPendingSelector { get; set; }
         public List<List<string>> CustomRootMappings { get; set; }

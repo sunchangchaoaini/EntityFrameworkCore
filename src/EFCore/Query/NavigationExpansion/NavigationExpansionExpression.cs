@@ -101,6 +101,12 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
 
                     return Call(toOrderedEnumerableMethodInfo, result);
                 }
+                else if (_returnType.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>))
+                {
+                    // TODO: how to handle properly?
+                    return Convert(result, _returnType);
+                }
+
             }
 
             return result;

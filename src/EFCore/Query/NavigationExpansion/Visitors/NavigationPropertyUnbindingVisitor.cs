@@ -55,6 +55,13 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 return result;
             }
 
+            if (extensionExpression is IncludeExpression includeExpression)
+            {
+                var result = new NavigationExpansionReducingVisitor().Visit(includeExpression);
+
+                return result;
+            }
+
             return base.VisitExtension(extensionExpression);
         }
     }

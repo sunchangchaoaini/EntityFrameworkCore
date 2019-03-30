@@ -65,8 +65,6 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
 
                 case "AsTracking":
                 case "AsNoTracking":
-                case "Include":
-                case "ThenInclude":
                     return ProcessBasicTerminatingOperation(methodCallExpression);
 
                 case nameof(Queryable.First):
@@ -81,6 +79,10 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 case nameof(Queryable.Skip):
                 case nameof(Queryable.Take):
                     return ProcessSkipTake(methodCallExpression);
+
+                case "Include":
+                case "ThenInclude":
+                    return ProcessInclude(methodCallExpression);
 
                 case "MaterializeCollectionNavigation":
                     return ProcessMaterializeCollectionNavigation(methodCallExpression);
@@ -114,6 +116,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 Expression.Lambda(new CustomRootExpression(currentParameter, customRootMapping, currentParameter.Type), currentParameter),
                 applyPendingSelector: false,
                 new List<(MethodInfo method, LambdaExpression keySelector)>(),
+                pendingIncludeChain: null,
                 pendingCardinalityReducingOperator: null,
                 new List<List<string>> { customRootMapping },
                 materializeCollectionNavigation: null);
@@ -538,7 +541,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
 
             foreach (var outerSourceMapping in outerApplyOrderingsResult.state.SourceMappings)
             {
-                foreach (var navigationTreeNode in outerSourceMapping.NavigationTree.Flatten().Where(n => n.Expanded))
+                foreach (var navigationTreeNode in outerSourceMapping.NavigationTree.Flatten().Where(n => n.ExpansionMode == NavigationTreeNodeExpansionMode.Complete))
                 {
                     navigationTreeNode.ToMapping.Insert(0, nameof(TransparentIdentifierGJ<object, object>.Outer));
                     foreach (var fromMapping in navigationTreeNode.FromMappings)
@@ -586,6 +589,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 Expression.Lambda(newPendingSelectorBody, transparentIdentifierParameter),
                 applyPendingSelector: true,
                 outerApplyOrderingsResult.state.PendingOrderings,
+                outerApplyOrderingsResult.state.PendingIncludeChain,
                 outerApplyOrderingsResult.state.PendingCardinalityReducingOperator, // TODO: incorrect?
                 outerApplyOrderingsResult.state.CustomRootMappings,
                 materializeCollectionNavigation: null
@@ -842,6 +846,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                     Expression.Lambda(newPendingSelectorBody, newPendingSelectorParameter),
                     applyPendingSelector: false,
                     new List<(MethodInfo method, LambdaExpression keySelector)>(),
+                    pendingIncludeChain: null,
                     pendingCardinalityReducingOperator: null,
                     new List<List<string>> { customRootMapping },
                     materializeCollectionNavigation: null
@@ -853,6 +858,48 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
             {
                 return (applyOrderingsResult.source, applyOrderingsResult.state);
             }
+        }
+
+        private Expression ProcessInclude(MethodCallExpression methodCallExpression)
+        {
+            // TODO: for now
+            if (methodCallExpression.Arguments[1].Type == typeof(string))
+            {
+                return methodCallExpression;
+            }
+
+            var source = VisitSourceExpression(methodCallExpression.Arguments[0]);
+            var includeLambda = methodCallExpression.Arguments[1].UnwrapQuote();
+            AdjustCurrentParameterName(source.State, includeLambda.Parameters[0].Name);
+
+            var applyOrderingsResult = ApplyPendingOrderings(source.Operand, source.State);
+
+            // just bind to mark all the necessary navigation for include in the future
+            // include need to be delayed, in case they are not needed, e.g. when there is a projection on top that only projects scalars
+            Expression remappedIncludeLambdaBody;
+            if (methodCallExpression.Method.Name == "Include")
+            {
+                remappedIncludeLambdaBody = ExpressionExtensions.CombineAndRemapLambdas(applyOrderingsResult.state.PendingSelector, includeLambda).Body;
+            }
+            else
+            {
+                var pendingIncludeChainLambda = Expression.Lambda(applyOrderingsResult.state.PendingIncludeChain, applyOrderingsResult.state.CurrentParameter);
+                remappedIncludeLambdaBody = ExpressionExtensions.CombineAndRemapLambdas(pendingIncludeChainLambda, includeLambda).Body;
+            }
+
+            var binder = new NavigationPropertyBindingVisitor(applyOrderingsResult.state.PendingSelector.Parameters[0], applyOrderingsResult.state.SourceMappings, bindInclude: true);
+            var boundIncludeLambdaBody = binder.Visit(remappedIncludeLambdaBody);
+
+            if (boundIncludeLambdaBody is NavigationBindingExpression navigationBindingExpression)
+            {
+                applyOrderingsResult.state.PendingIncludeChain = navigationBindingExpression;
+            }
+            else
+            {
+                throw new InvalidOperationException("Incorrect include argument: " + includeLambda);
+            }
+
+            return new NavigationExpansionExpression(applyOrderingsResult.source, applyOrderingsResult.state, methodCallExpression.Type);
         }
 
         //private Expression ProcessTerminatingOperation(MethodCallExpression methodCallExpression)
@@ -1170,6 +1217,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                         pendingSelector,
                         applyPendingSelector: false,
                         new List<(MethodInfo method, LambdaExpression keySelector)>(),
+                        pendingIncludeChain: null,
                         pendingCardinalityReducingOperator: null,
                         new List<List<string>>(),
                         materializeCollectionNavigation: null
@@ -1203,11 +1251,6 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
             LambdaExpression lambda,
             NavigationExpansionExpressionState state)
         {
-            if (source is NavigationExpansionExpression)
-            {
-                throw new InvalidOperationException("fubar");
-            }
-
             if (state.PendingSelector == null)
             {
                 return (source, lambda.Body, state);
@@ -1229,7 +1272,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
 
             foreach (var sourceMapping in state.SourceMappings)
             {
-                if (sourceMapping.NavigationTree.Flatten().Any(n => !n.Expanded))
+                if (sourceMapping.NavigationTree.Flatten().Any(n => n.ExpansionMode == NavigationTreeNodeExpansionMode.Pending))
                 {
                     foreach (var navigationTree in sourceMapping.NavigationTree.Children)
                     {
@@ -1265,6 +1308,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 pendingSelector,
                 applyPendingSelector,
                 state.PendingOrderings,
+                state.PendingIncludeChain,
                 state.PendingCardinalityReducingOperator, // TODO: should we keep it?
                 state.CustomRootMappings,
                 state.MaterializeCollectionNavigation
@@ -1299,7 +1343,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
             NavigationExpansionExpressionState state,
             List<INavigation> navigationPath)
         {
-            if (!navigationTree.Expanded)
+            if (navigationTree.ExpansionMode == NavigationTreeNodeExpansionMode.Pending)
             {
                 // TODO: hack - if we wrapped collection around MaterializeCollectionNavigation during collection rewrite, unwrap that call when applying navigations on top
                 if (sourceExpression is MethodCallExpression sourceMethodCall
@@ -1503,7 +1547,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 navigationTree.ToMapping.Insert(0, nameof(TransparentIdentifier<object, object>.Inner));
                 foreach (var mapping in state.SourceMappings)
                 {
-                    foreach (var navigationTreeNode in mapping.NavigationTree.Flatten().Where(n => n.Expanded && n != navigationTree))
+                    foreach (var navigationTreeNode in mapping.NavigationTree.Flatten().Where(n => n.ExpansionMode == NavigationTreeNodeExpansionMode.Complete && n != navigationTree))
                     {
                         navigationTreeNode.ToMapping.Insert(0, nameof(TransparentIdentifier<object, object>.Outer));
                         if (navigationTree.Optional)
@@ -1522,7 +1566,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                     }
                 }
 
-                navigationTree.Expanded = true;
+                navigationTree.ExpansionMode = NavigationTreeNodeExpansionMode.Complete;
                 navigationPath.Add(navigation);
             }
             else
@@ -1591,7 +1635,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
 
             foreach (var outerSourceMapping in outerState.SourceMappings)
             {
-                foreach (var navigationTreeNode in outerSourceMapping.NavigationTree.Flatten().Where(n => n.Expanded))
+                foreach (var navigationTreeNode in outerSourceMapping.NavigationTree.Flatten().Where(n => n.ExpansionMode == NavigationTreeNodeExpansionMode.Complete))
                 {
                     navigationTreeNode.ToMapping.Insert(0, nameof(TransparentIdentifier2<object, object>.Outer));
                     foreach (var fromMapping in navigationTreeNode.FromMappings)
@@ -1613,7 +1657,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
 
             foreach (var innerSourceMapping in innerState.SourceMappings)
             {
-                foreach (var navigationTreeNode in innerSourceMapping.NavigationTree.Flatten().Where(n => n.Expanded))
+                foreach (var navigationTreeNode in innerSourceMapping.NavigationTree.Flatten().Where(n => n.ExpansionMode == NavigationTreeNodeExpansionMode.Complete))
                 {
                     navigationTreeNode.ToMapping.Insert(0, nameof(TransparentIdentifier2<object, object>.Inner));
                     foreach (var fromMapping in navigationTreeNode.FromMappings)
@@ -1636,6 +1680,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 Expression.Lambda(newPendingSelectorBody, transparentIdentifierParameter),
                 applyPendingSelector: true,
                 new List<(MethodInfo method, LambdaExpression keySelector)>(),
+                pendingIncludeChain: null,
                 pendingCardinalityReducingOperator: null, // TODO: incorrect?
                 outerState.CustomRootMappings.Concat(innerState.CustomRootMappings).ToList(),
                 materializeCollectionNavigation: null

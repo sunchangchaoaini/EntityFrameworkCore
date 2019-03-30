@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,12 +11,31 @@ using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
 {
+    public enum NavigationTreeNodeExpansionMode
+    {
+        /// <summary>
+        ///     Navigation doesn't need to be expanded
+        /// </summary>
+        NotNeeded,
+
+        /// <summary>
+        ///     Navigation needs to be expanded, but hasn't been expanded yet
+        /// </summary>
+        Pending,
+
+        /// <summary>
+        ///     Navigation had already been expanded
+        /// </summary>
+        Complete,
+    };
+
     public class NavigationTreeNode
     {
         private NavigationTreeNode(
             [NotNull] INavigation navigation,
             [NotNull] NavigationTreeNode parent,
-            bool optional)
+            bool optional,
+            bool include)
         {
             Check.NotNull(navigation, nameof(navigation));
             Check.NotNull(parent, nameof(parent));
@@ -24,6 +44,16 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
             Parent = parent;
             Optional = optional;
             ToMapping = new List<string>();
+            if (include)
+            {
+                ExpansionMode = NavigationTreeNodeExpansionMode.NotNeeded;
+                Included = true;
+            }
+            else
+            {
+                ExpansionMode = NavigationTreeNodeExpansionMode.Pending;
+                Included = false;
+            }
 
             foreach (var parentFromMapping in parent.FromMappings)
             {
@@ -40,14 +70,16 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
             Optional = optional;
             FromMappings.Add(fromMapping.ToList());
             ToMapping = fromMapping.ToList();
-            Expanded = true;
+            ExpansionMode = NavigationTreeNodeExpansionMode.Complete;
+            Included = false;
         }
 
         public INavigation Navigation { get; private set; }
         public bool Optional { get; private set; }
         public NavigationTreeNode Parent { get; private set; }
         public List<NavigationTreeNode> Children { get; private set; } = new List<NavigationTreeNode>();
-        public bool Expanded { get; set; }
+        public NavigationTreeNodeExpansionMode ExpansionMode { get; set; }
+        public bool Included { get; set; }
 
         public List<List<string>> FromMappings { get; set; } = new List<List<string>>();
         public List<string> ToMapping { get; set; }
@@ -66,7 +98,8 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
         public static NavigationTreeNode Create(
             [NotNull] SourceMapping sourceMapping,
             [NotNull] INavigation navigation,
-            [NotNull] NavigationTreeNode parent)
+            [NotNull] NavigationTreeNode parent,
+            bool include)
         {
             Check.NotNull(sourceMapping, nameof(sourceMapping));
             Check.NotNull(navigation, nameof(navigation));
@@ -75,13 +108,22 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
             var existingChild = parent.Children.Where(c => c.Navigation == navigation).SingleOrDefault();
             if (existingChild != null)
             {
+                if (include && !existingChild.Included)
+                {
+                    existingChild.Included = true;
+                }
+                else if (!include && existingChild.ExpansionMode == NavigationTreeNodeExpansionMode.NotNeeded)
+                {
+                    existingChild.ExpansionMode = NavigationTreeNodeExpansionMode.Pending;
+                }
+
                 return existingChild;
             }
 
             // if (any) parent is optional, all children must be optional also
             // TODO: what about query filters?
             var optional = parent.Optional || !navigation.ForeignKey.IsRequired || !navigation.IsDependentToPrincipal();
-            var result = new NavigationTreeNode(navigation, parent, optional);
+            var result = new NavigationTreeNode(navigation, parent, optional, include);
             parent.Children.Add(result);
 
             return result;

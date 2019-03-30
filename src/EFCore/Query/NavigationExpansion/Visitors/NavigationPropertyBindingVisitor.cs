@@ -13,13 +13,16 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
     {
         private ParameterExpression _rootParameter;
         private List<SourceMapping> _sourceMappings;
+        private bool _bindInclude;
 
         public NavigationPropertyBindingVisitor(
             ParameterExpression rootParameter,
-            List<SourceMapping> sourceMappings)
+            List<SourceMapping> sourceMappings,
+            bool bindInclude = false)
         {
             _rootParameter = rootParameter;
             _sourceMappings = sourceMappings;
+            _bindInclude = bindInclude;
         }
 
         protected override Expression VisitExtension(Expression extensionExpression)
@@ -158,7 +161,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                     var navigation = navigationBindingExpression.EntityType.FindNavigation(navigationMemberName);
                     if (navigation != null)
                     {
-                        var navigationTreeNode = NavigationTreeNode.Create(navigationBindingExpression.SourceMapping, navigation, navigationBindingExpression.NavigationTreeNode);
+                        var navigationTreeNode = NavigationTreeNode.Create(navigationBindingExpression.SourceMapping, navigation, navigationBindingExpression.NavigationTreeNode, _bindInclude);
 
                         // TODO: is original expression still needed now?!
                         return new NavigationBindingExpression(
@@ -168,7 +171,6 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                             navigationBindingExpression.SourceMapping,
                             originalExpression.Type);
                     }
-
                 }
             }
             else

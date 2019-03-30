@@ -37,6 +37,11 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                 return navigationExpansionRootExpression;
             }
 
+            if (extensionExpression is IncludeExpression includeExpression)
+            {
+                return includeExpression;
+            }
+
             return base.VisitExtension(extensionExpression);
         }
 
@@ -122,6 +127,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                             Expression.Lambda(combinedKeySelectorBody, navigationExpansionExpression.State.CurrentParameter),
                             applyPendingSelector: true,
                             navigationExpansionExpression.State.PendingOrderings,
+                            navigationExpansionExpression.State.PendingIncludeChain,
                             navigationExpansionExpression.State.PendingCardinalityReducingOperator,
                             navigationExpansionExpression.State.CustomRootMappings,
                             materializeCollectionNavigation: null
@@ -170,6 +176,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                                 pendingSelector,
                                 applyPendingSelector: false,
                                 new List<(System.Reflection.MethodInfo method, LambdaExpression keySelector)>(),
+                                pendingIncludeChain: null,
                                 pendingCardinalityReducingOperator: null, // TODO: incorrect?
                                 customRootMappings: new List<List<string>>(),
                                 materializeCollectionNavigation: null
@@ -194,6 +201,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                     Expression.Lambda(boundSelectorBody, navigationExpansionExpression.State.CurrentParameter),
                     applyPendingSelector: true,
                     navigationExpansionExpression.State.PendingOrderings,
+                    navigationExpansionExpression.State.PendingIncludeChain,
                     navigationExpansionExpression.State.PendingCardinalityReducingOperator,
                     navigationExpansionExpression.State.CustomRootMappings,
                     navigationExpansionExpression.State.MaterializeCollectionNavigation
@@ -351,6 +359,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                         Expression.Lambda(outerKeyAccess, leftNavigationExpansionExpression.State.PendingSelector.Parameters[0]),
                         applyPendingSelector: true,
                         leftNavigationExpansionExpression.State.PendingOrderings,
+                        leftNavigationExpansionExpression.State.PendingIncludeChain,
                         leftNavigationExpansionExpression.State.PendingCardinalityReducingOperator,
                         leftNavigationExpansionExpression.State.CustomRootMappings,
                         leftNavigationExpansionExpression.State.MaterializeCollectionNavigation);
@@ -381,6 +390,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                         Expression.Lambda(innerKeyAccess, rightNavigationExpansionExpression.State.PendingSelector.Parameters[0]),
                         applyPendingSelector: true,
                         rightNavigationExpansionExpression.State.PendingOrderings,
+                        rightNavigationExpansionExpression.State.PendingIncludeChain,
                         rightNavigationExpansionExpression.State.PendingCardinalityReducingOperator,
                         rightNavigationExpansionExpression.State.CustomRootMappings,
                         rightNavigationExpansionExpression.State.MaterializeCollectionNavigation);

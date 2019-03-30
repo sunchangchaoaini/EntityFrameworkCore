@@ -30,6 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion
             }
 
             var newExpression = new NavigationExpandingVisitor(_model).Visit(expression);
+            newExpression = new IncludeApplyingVisitor().Visit(newExpression);
             newExpression = new NavigationExpansionReducingVisitor().Visit(newExpression);
 
             // TODO: hack to workaround type discrepancy that can happen sometimes when rerwriting collection navigations
