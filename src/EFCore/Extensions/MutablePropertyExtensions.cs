@@ -105,8 +105,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         ///     The primary that use this property, or null if it is not part of the primary key.
         /// </returns>
-        public static IMutableKey GetContainingPrimaryKey([NotNull] this IMutableProperty property)
-            => (IMutableKey)((IProperty)property).GetContainingPrimaryKey();
+        public static IMutableKey FindContainingPrimaryKey([NotNull] this IMutableProperty property)
+            => (IMutableKey)((IProperty)property).FindContainingPrimaryKey();
 
         /// <summary>
         ///     Gets all primary or alternate keys that use this property (including composite keys in which this property

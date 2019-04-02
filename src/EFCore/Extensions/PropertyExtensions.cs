@@ -140,7 +140,7 @@ namespace Microsoft.EntityFrameworkCore
         ///     <c>true</c> if the property is used as the primary key, otherwise <c>false</c>.
         /// </returns>
         public static bool IsPrimaryKey([NotNull] this IProperty property)
-            => GetContainingPrimaryKey(property) != null;
+            => FindContainingPrimaryKey(property) != null;
 
         /// <summary>
         ///     Gets a value indicating whether this property is used as part of a primary or alternate key
@@ -185,7 +185,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         ///     The primary that use this property, or <c>null</c> if it is not part of the primary key.
         /// </returns>
-        public static IKey GetContainingPrimaryKey([NotNull] this IProperty property)
+        public static IKey FindContainingPrimaryKey([NotNull] this IProperty property)
             => Check.NotNull(property, nameof(property)).AsProperty().PrimaryKey;
 
         /// <summary>

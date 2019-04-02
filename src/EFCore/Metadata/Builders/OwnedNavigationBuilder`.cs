@@ -315,9 +315,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
             InternalRelationshipBuilder relationship;
             using (var batch = DependentEntityType.Model.ConventionDispatcher.StartBatch())
             {
-                relationship = navigation.Property == null
+                relationship = navigation.MemberInfo == null
                     ? DependentEntityType.Builder.Owns(typeof(TNewDependentEntity), navigation.Name, ConfigurationSource.Explicit)
-                    : DependentEntityType.Builder.Owns(typeof(TNewDependentEntity), (PropertyInfo)navigation.Property, ConfigurationSource.Explicit);
+                    : DependentEntityType.Builder.Owns(typeof(TNewDependentEntity), (PropertyInfo)navigation.MemberInfo, ConfigurationSource.Explicit);
                 relationship.IsUnique(true, ConfigurationSource.Explicit);
                 relationship = batch.Run(relationship.Metadata).Builder;
             }
@@ -467,9 +467,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
             InternalRelationshipBuilder relationship;
             using (var batch = DependentEntityType.Model.ConventionDispatcher.StartBatch())
             {
-                relationship = navigation.Property == null
+                relationship = navigation.MemberInfo == null
                     ? DependentEntityType.Builder.Owns(typeof(TNewRelatedEntity), navigation.Name, ConfigurationSource.Explicit)
-                    : DependentEntityType.Builder.Owns(typeof(TNewRelatedEntity), (PropertyInfo)navigation.Property, ConfigurationSource.Explicit);
+                    : DependentEntityType.Builder.Owns(typeof(TNewRelatedEntity), (PropertyInfo)navigation.MemberInfo, ConfigurationSource.Explicit);
                 relationship.IsUnique(false, ConfigurationSource.Explicit);
                 relationship = batch.Run(relationship.Metadata).Builder;
             }
